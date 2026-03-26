@@ -18,7 +18,7 @@ export default function Home() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen items-center gap-4 bg-zinc-50 **:transition **:duration-200" onClick={()=>{if(shuryoopend) setShuryoopend(false);}}>
+    <div className="flex flex-col min-h-screen items-center gap-4 bg-zinc-50 text-black **:transition **:duration-200" onClick={()=>{if(shuryoopend) setShuryoopend(false);}}>
       <h1 className="text-xl mt-2">音楽部残留予定</h1>
       <div className="w-100 bg-white p-4 rounded shadow">
         <p className="text-lg mb-2">活動日</p>
@@ -50,7 +50,7 @@ export default function Home() {
               <path d="M6 9L12 15L18 9" stroke="#333" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
           </div>
-          <div className={`absolute top-full left-0 w-full bg-gray-100 border border-gray-300 rounded mt-1 shadow-lg !duration-400 ${shuryoopend ? '' : 'opacity-0 scale-70 -translate-y-[15%]'}`}>
+          <div className={`absolute top-full left-0 w-full bg-gray-100 border border-gray-300 rounded mt-1 shadow-lg !duration-400 ${shuryoopend ? '' : 'opacity-0 scale-70 -translate-y-[15%] pointer-events-none'}`}>
             {shuryo.map((i, index) => (
               <p key={index} className={`text-sm p-2 hover:bg-gray-200 cursor-pointer ${index === shuryoType ? 'border border-sky-700' : ''}`} onClick={() => {
                 setShuryoType(index);
