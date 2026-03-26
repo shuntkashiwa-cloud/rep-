@@ -1,20 +1,14 @@
-import type { VercelRequest, VercelResponse } from '@vercel/node'
+import { NextResponse } from 'next/server';
 import nodemailer from "nodemailer";
 
-export default async function handler(req: VercelRequest, res: VercelResponse) {
-  if (req.method !== "POST") {
-    return res.status(405).json({ error: "Method not allowed" });
+export async function POST(req: Request) {
+  const { to, subject, text, fileName, fileContent } = await req.json();
+
+  if (!to || !subject || !text) {
+    return NextResponse.json({ error: "Missing required fields" }, { status: 400 });
   }
 
   try {
-    const { to, subject, text, fileName, fileContent } = req.body as {
-      to: string;
-      subject: string;
-      text: string;
-      fileName?: string;
-      fileContent?: string;
-    };
-
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
@@ -40,9 +34,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     await transporter.sendMail(mailOptions);
-    res.status(200).json({ message: "Mail sent successfully!" });
+    return NextResponse.json({ message: "Mail sent successfully!" });
   } catch (error: any) {
     console.error("Error:", error);
-    res.status(500).json({ error: error.message });
+    return NextResponse.json({ error: error.message }, { status: 500 });
   }
 }
