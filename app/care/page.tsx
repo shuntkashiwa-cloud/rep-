@@ -69,7 +69,8 @@ export default function Home() {
           </div>
         )}
         {shuryoType === 2 && (<input type="time" className="border border-gray-300 outline-none p-2 focus:border-sky-700 text-sm" step="300" value={ikkatsuTime} onChange={(e) => setIkkatsuTime(e.target.value)} ></input>)}
-        <TimeUI/>
+        <div className="mt-2">
+        <TimeUI/></div>
       </div>
     </div>
   )

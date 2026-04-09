@@ -20,22 +20,23 @@ export default function TimeUI() {
   const lasthour = useRef([17, 0]);
   const count = useRef([0, 0]);
   const [focused, setFocused] = useState([false, false]);
-  const pRef = useRef<(HTMLParagraphElement|null)[]>([null, null]);
+  const pRef = useRef<(HTMLParagraphElement | null)[]>([null, null]);
 
 
   const setsethour = (i: number, val: number) => {
-    let valval=0;
+    console.log(val);
+    let valval = (Number.isNaN(val) ? lasthour.current[i] : val);
     let ret = true;
-    if (val >= (24 + 36 * i)){
-        valval = lasthour.current[i];
-        ret= false;
-    }else{
-      valval=Math.max(0, val);
+    if (val >= (24 + 36 * i)) {
+      valval = lasthour.current[i];
+      ret = false;
+    } else {
+      valval = Math.max(0, valval);
     }
     lasthour.current[i] = valval;
     setHour(prev => {
       const buf = [...prev];
-      buf[i] =  valval;
+      buf[i] = valval;
       return buf;
     });
     return ret;
@@ -49,7 +50,7 @@ export default function TimeUI() {
     let iflastscro = false
 
     const increhour = (i: number, dire: number) => {
-      setHour(prev => { const buf = [...prev]; buf[i] = (buf[i] + dire / Math.abs(dire)+24+36 * i) % (24 + 36 * i); return buf });
+      setHour(prev => { const buf = [...prev]; buf[i] = (buf[i] + dire / Math.abs(dire) + 24 + 36 * i) % (24 + 36 * i); return buf });
     }
 
     const timer = (i: number) => {
@@ -106,33 +107,52 @@ export default function TimeUI() {
 
 
   return (
-    <div>
-      <p ref={(el) => {pRef.current[0] = el}} tabIndex={0} className="!duration-0 text-center border border-gray-300 w-6 focus:border-sky-700 outline-none" onKeyDown={(e) => {
-        const allowedKeys = [
-          'Backspace',
-          '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
-        ];
-
-        if (!allowedKeys.includes(e.key)) {
-          e.preventDefault();
-        } else if (e.key === "Backspace") {
-          if (count.current[0] === 0) {
-            setsethour(0, 0);
-          } else {
-            setsethour(0, parseInt(hour[0].toString().slice(0, -1)) || 0);
-            count.current[0]-=1;
-          }
-        }else{
-          if (count.current[0] === 0) {
-            setsethour(0, parseInt(e.key));
-            count.current[0]+=1;
-          }else{
-            if(setsethour(0,hour[0]*10 + parseInt(e.key))){
-              e.currentTarget.blur();
+    <div className="w-40">
+      <div className="mx-auto relative flex gap-5 w-fit">
+        {[0, 0].map((_, i) => (
+          <p key={i} ref={(el) => { pRef.current[i] = el }} tabIndex={0} className="tabular-num text-center !duration-0 border border-gray-300 w-6.25 h-6.25 focus:border-sky-700 outline-none" style={{lineHeight:"25px"}} onKeyDown={(e) => {
+            const allowedKeys = [
+              'Backspace',
+              '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
+            ];
+            const arrow = ['ArrowRight', 'ArrowLeft'];
+            console.log(typeof e.key, typeof (arrow[i]));
+            if (!allowedKeys.includes(e.key)) {
+              e.preventDefault();
+            } else if (e.key === "Backspace") {
+              if (count.current[i] === 0) {
+                setsethour(i, 0);
+              } else {
+                setsethour(i, parseInt(hour[i].toString().slice(0, -1)) || 0);
+                count.current[i] -= 1;
+              }
+            } else {
+              if (count.current[i] === 0) {
+                setsethour(i, parseInt(e.key));
+                count.current[i] += 1;
+              } else {
+                if (setsethour(i, hour[i] * 10 + parseInt(e.key))) {
+                  e.currentTarget.blur();
+                  if (i === 0) {
+                    pRef.current[1]?.focus();
+                  }
+                }
+              }
             }
-          }
-        }
-      }} onFocus={() => { setFocused([true, false]); count.current[0] = 0; }} onBlur={() => setFocused((prev) => { const buf = [...prev]; buf[0] = false; return buf; })}>{focused[0] ? <mark className="p-px bg-[oklch(0.54_0.17_262.17)] text-white">{(hour[0]).toString().padStart(2, '0')}</mark> :(hour[0]+24%24).toString().padStart(2, '0')}</p>
+            if (e.key === arrow[i]) {
+              console.log(pRef.current[1 - i]);
+              pRef.current[1 - i]?.focus();
+              pRef.current[i]?.blur();
+            } else if (e.key === "Enter") {
+              e.currentTarget.blur();
+              if (i === 0) {
+                pRef.current[1]?.focus();
+              }
+            }
+          }} onFocus={() => { setFocused([i === 0, i === 1]); count.current[i] = 0; }} onBlur={() => setFocused((prev) => { const buf = [...prev]; buf[i] = false; return buf; })}>{focused[i] ? <mark className="m-auto p-px tabular-num bg-[oklch(0.54_0.17_262.17)] text-white">{(hour[i]).toString().padStart(2, '0')}</mark> : hour[i].toString().padStart(2, '0')}</p>
+        ))}
+        <p className="absolute right-1/2 translate-x-1/2 text-center w-4">:</p>
+      </div>
       <div className="relative bg-gray-100 border border-gray-300 rounded mt-1 shadow-lg h-24 w-[161px]">
         {["32", "79"].map((i, inde) => (
           <div key={inde} className={`absolute h-24 w-12 -top-[1px] outline-1 -outline-offset-1 outline-sky-700 z-5 ${ikkatsuhover[inde] ? 'opacity-100' : 'opacity-0'}`} style={{ left: `${i}px` }}></div>
