@@ -1,6 +1,7 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-export default function TimeUI() {
+type Props={settime:(time:number)=>void; type?:string};
+export default function TimeUI({settime,type}:Props) {
 
   const [hour, setHour] = useState([17, 0]);
   const [dur, setDur] = useState(200);
@@ -15,13 +16,13 @@ export default function TimeUI() {
   const opa = ["100", "70", "50", "0"];
   const position = ["-translate-y-[52px]", "-translate-y-[47px]", "-translate-y-[32px]", "-translate-y-[12px]", "translate-y-[8px]", "translate-y-[23px]", "translate-y-[28px]"];
   const scale = ["100", "80", "50", "0"];
+  const hourref=useRef([17,0])
 
   //キー入力での時間変更のための関数。入力値が不正な場合は最後に有効だった値を使用する。
   const lasthour = useRef([17, 0]);
   const count = useRef([0, 0]);
   const [focused, setFocused] = useState([false, false]);
   const pRef = useRef<(HTMLParagraphElement | null)[]>([null, null]);
-
 
   const setsethour = (i: number, val: number) => {
     console.log(val);
@@ -57,6 +58,8 @@ export default function TimeUI() {
       const timeout = Math.max(Date.now() - last.current, lastdur.current);
       if (timeout > 190) {
         reserved.current = false;
+        console.log(60*hour[0]+hour[1])
+        settime(60*hourref.current[0]+hourref.current[1]);
         return;
       }
       iflastscro = false;
@@ -105,6 +108,9 @@ export default function TimeUI() {
     }
   }, []);
 
+  useEffect(()=>{
+    hourref.current=hour;
+  },[hour])
 
   return (
     <div className="w-40">
@@ -159,7 +165,7 @@ export default function TimeUI() {
         ))}
         <div ref={scroh} className="absolute z-10 h-24 w-20 top-0 left-0"></div>
         <div ref={scrom} className="absolute z-20 h-24 w-20 top-0 left-20"></div>
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[50%] w-[161px] rounded h-5 bg-gray-300"></div>
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[50%] w-[161px] rounded h-5 ${type? "bg-gray-200":"bg-gray-300"}`}></div>
         {[24, 60].map((i, inde) => (
           new Array(i).fill(0).map((_, index) => (<p key={index} className={`w-8 text-center z-1 whitespace-pre tabular-nums absolute top-1/2  -translate-x-1/2 ${position[Math.max(0, Math.min(6, (index - hour[inde] + i * 3 / 2) % i - i / 2 + 3))]}`} style={
             {
