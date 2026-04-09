@@ -1,8 +1,19 @@
 @import "tailwindcss";
 
+@layer utilities {
+  :root {
+    /* oklchの数値部分（スペース区切り）だけを定義します */
+    --color-primary: 0.54 0.17 262.17;
+  }
+}
+
 :root {
   --background: #ffffff;
   --foreground: #171717;
+}
+
+@theme{
+  --color-ore:oklch(0.563 0.1275 63.83);
 }
 
 @theme inline {
