@@ -1,9 +1,8 @@
 "use client";
 import { useEffect, useRef, useState } from "react";
-type Props={settime:(time:number)=>void; type?:string};
-export default function TimeUI({settime,type}:Props) {
-
-  const [hour, setHour] = useState([17, 0]);
+type Props={settime:(time:number)=>void; type?:string; defo?:number};
+export default function TimeUI({settime,type,defo}:Props) {
+  const [hour, setHour] = useState(defo ? [Math.floor(defo / 60),defo % 60] : [17,0]);
   const [dur, setDur] = useState(200);
   const [ikkatsuhover, setIkkatsuhover] = useState([false, false]);
 
@@ -116,7 +115,7 @@ export default function TimeUI({settime,type}:Props) {
     <div className="w-40">
       <div className="mx-auto relative flex gap-5 w-fit">
         {[0, 0].map((_, i) => (
-          <p key={i} ref={(el) => { pRef.current[i] = el }} tabIndex={0} className="tabular-num text-center !duration-0 border border-gray-300 w-6.25 h-6.25 focus:border-sky-700 outline-none" style={{lineHeight:"25px"}} onKeyDown={(e) => {
+          <p key={i} ref={(el) => { pRef.current[i] = el }} tabIndex={0} className="bg-white tabular-num text-center duration-0! border border-gray-300 w-8 h-8 focus:border-sky-700 outline-none" style={{lineHeight:"32px"}} onKeyDown={(e) => {
             const allowedKeys = [
               'Backspace',
               '0', '1', '2', '3', '4', '5', '6', '7', '8', '9'
@@ -157,15 +156,15 @@ export default function TimeUI({settime,type}:Props) {
             }
           }} onFocus={() => { setFocused([i === 0, i === 1]); count.current[i] = 0; }} onBlur={() => setFocused((prev) => { const buf = [...prev]; buf[i] = false; return buf; })}>{focused[i] ? <mark className="m-auto p-px tabular-num bg-[oklch(0.54_0.17_262.17)] text-white">{(hour[i]).toString().padStart(2, '0')}</mark> : hour[i].toString().padStart(2, '0')}</p>
         ))}
-        <p className="absolute right-1/2 translate-x-1/2 text-center w-4">:</p>
+        <p className="absolute right-1/2 translate-x-1/2 top-1/2 -translate-y-1/2 text-center w-4">:</p>
       </div>
-      <div className="relative bg-gray-100 border border-gray-300 rounded mt-1 shadow-lg h-24 w-[161px]">
+      <div className={`relative ${type? 'bg-white':'bg-gray-100'} border border-gray-300 rounded mt-1 shadow-lg h-24 w-40.25`}>
         {["32", "79"].map((i, inde) => (
-          <div key={inde} className={`absolute h-24 w-12 -top-[1px] outline-1 -outline-offset-1 outline-sky-700 z-5 ${ikkatsuhover[inde] ? 'opacity-100' : 'opacity-0'}`} style={{ left: `${i}px` }}></div>
+          <div key={inde} className={`absolute h-24 w-12 -top-px outline-1 -outline-offset-1 outline-sky-700 z-5 ${ikkatsuhover[inde] ? 'opacity-100' : 'opacity-0'}`} style={{ left: `${i}px` }}></div>
         ))}
         <div ref={scroh} className="absolute z-10 h-24 w-20 top-0 left-0"></div>
         <div ref={scrom} className="absolute z-20 h-24 w-20 top-0 left-20"></div>
-        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[50%] w-[161px] rounded h-5 ${type? "bg-gray-200":"bg-gray-300"}`}></div>
+        <div className={`absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[50%] w-40.25 rounded h-5 ${type? "bg-gray-200":"bg-gray-300"}`}></div>
         {[24, 60].map((i, inde) => (
           new Array(i).fill(0).map((_, index) => (<p key={index} className={`w-8 text-center z-1 whitespace-pre tabular-nums absolute top-1/2  -translate-x-1/2 ${position[Math.max(0, Math.min(6, (index - hour[inde] + i * 3 / 2) % i - i / 2 + 3))]}`} style={
             {
@@ -177,5 +176,6 @@ export default function TimeUI({settime,type}:Props) {
           }>{(index).toString().padStart(2, ['\u2007', '0'][inde])}</p>))
         ))}
       </div>
+        <div className="mt-4 bg-white flex px-1 mb-2 shadow w-fit">{[17,14].map((i)=>(<button key={i} className="px-2 py-1.5 relative before:transition-transform hover:before:duration-400 hover:before:ease-in-out before:ease-out before:duration-200 before:absolute before:bottom-0 before:left-0 before:h-0.5 before:w-full before:origin-right hover:before:origin-left before:scale-x-0 before:bg-ore before:content-[''] hover:before:scale-x-100 " onClick={()=>{settime(60*i);setHour([i,0])}}>{i}:00</button>))}</div>
     </div>);
 }

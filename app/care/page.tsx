@@ -103,13 +103,18 @@ export default function Home() {
                   setKobetunum(index);
                   setTimeout(() => { setIskobeopend(true) }, 10)
                   clearTimeout(unseto.current);
+                  console.log(typeof scheduler[kboetunum]);
                 }
               }}><p className={`text-center aspect-square pt-2 rounded-full ${(index + fday) % 7 === 0 ? ' text-ore' : ''}`} key={index}>{index + 1}</p><p className="absolute top-6 text-white text-xs right-1/2 translate-x-1/2">{(typeof i == "number" && `${Math.floor(i / 60)}:${(i % 60).toString().padStart(2, "0")}`)}</p></div>))}
             </div>
-            <div hidden={!unseen} ref={popupref} className={`${iskobeopend ? "" : "opacity-0 scale-70 translate-y-[15%]"} border border-gray-300 absolute -translate-x-1/2 bg-neutral-100 p-4 w-fit shadow-lg`} style={{ left: `${(fday + kboetunum + 1) % 7 * (80 * 4 / 7) - 80 * 2 / 7}px`, bottom: `${(Math.ceil((fday + scheduler[firstDay.getMonth()].length) / 7) - Math.ceil((fday + kboetunum + 1) / 7) + 1) * (80 * 4 / 7)+16}px` }}><TimeUI key={kboetunum} type="w" settime={(i) => { setblue(kboetunum, i) }} />
+            <div hidden={!unseen} ref={popupref} className={`${iskobeopend ? "" : "opacity-0 scale-70 translate-y-[15%]"} border border-gray-300 absolute -translate-x-1/2 bg-neutral-100 pt-4 pl-6 pr-8 pb-6 w-fit shadow-lg`} style={{ left: `${(fday + kboetunum + 1) % 7 * (80 * 4 / 7) - 80 * 2 / 7}px`, bottom: `${(Math.ceil((fday + scheduler[firstDay.getMonth()].length) / 7) - Math.ceil((fday + kboetunum + 1) / 7) + 1) * (80 * 4 / 7) + 16}px` }}><TimeUI key={kboetunum} type="w" defo={scheduler[firstDay.getMonth()][kboetunum] as number} settime={(i) => { setblue(kboetunum, i) }} />
               <svg viewBox="0 0 28 28" className="w-7 h-7 absolute -bottom-7 left-1/2 -translate-x-1/2">
                 <path d="M0 0L14 16 L28 0Z " className="fill-neutral-100 stroke-1 stroke-gray-300"></path>
                 <path d="M1 0L27 0" className="stroke-neutral-100"></path></svg>
+              <button className="absolute right-2 bottom-2 w-10 h-10 bg-sky-700 text-white rounded-full border border-sky-700 hover:bg-white hover:text-sky-700" onClick={() => {
+                setIskobeopend(false);
+                unseto.current = setTimeout(() => { setunseen(false) }, 300);
+              }}>✔</button>
             </div>
           </div>
         )}
