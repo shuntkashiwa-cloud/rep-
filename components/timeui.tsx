@@ -34,6 +34,7 @@ export default function TimeUI({settime,type,defo}:Props) {
       valval = Math.max(0, valval);
     }
     lasthour.current[i] = valval;
+    settime(valval*(1+59*(1-i))+hour[1-i]*(1+59*i));
     setHour(prev => {
       const buf = [...prev];
       buf[i] = valval;

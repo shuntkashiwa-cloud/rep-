@@ -1,12 +1,16 @@
 "use client";
 import TimeUI from "@/components/timeui";
-import { use, useEffect, useRef, useState } from "react";
+import { use, useEffect, useEffectEvent, useRef, useState } from "react";
+import { supabase } from "../../lib/supabaseClient";
+
 export default function Home() {
   const shuryo = ["すべて17時", "すべて14時", "すべて一括で指定", "個別で指定"]
   const nowmonth = new Date().getMonth()
   const nowdate = new Date().getDate()
 
-  const [scheduler, setScheduler] = useState<(boolean | number)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear(), (ind + 1) % 12, 0).getDate()).fill(false)));
+  const [scheduler, setScheduler] = useState<(boolean | number)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear() + (1 * Number(ind < nowmonth)), (ind + 1) % 12, 0).getDate()).fill(false)));
+  const [oldSche, setOldSche] = useState<(boolean)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear() + (1 * Number(ind < nowmonth)), (ind + 1) % 12, 0).getDate()).fill(false)));
+  const [memoSche, setMemoSche] = useState<(boolean | number)[][]>(structuredClone(scheduler));
   const [firstDay, setFirstDay] = useState(new Date(new Date().getFullYear(), nowmonth, 1));
   const [shuryoType, setShuryoType] = useState(0);
   const [shuryoopend, setShuryoopend] = useState(false);
@@ -16,8 +20,20 @@ export default function Home() {
   const unseto = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const fday = firstDay.getDay();
-
+  let sum = 0;
+  let slicesum = [0, ...scheduler.map(i => sum += (i.length + Number(i.length == 28)))];
   const popupref = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const fetchdata = async () => {
+      const { data: iit, error } = await supabase.from("scheduler").select("time").order("id", { ascending: true });;
+      if (iit) {
+        setScheduler(slicesum.slice(0, 12).map((i, index) => iit.slice(i, slicesum[index + 1]).map((j, _) => j.time || false)))
+        setOldSche(slicesum.slice(0, 12).map((i, index) => iit.slice(i, slicesum[index + 1]).map((j, _) => j.time? true: false)))
+      };
+    }
+    fetchdata();
+  }, []);
 
   useEffect(() => {
     const handleclick = (e: MouseEvent) => {
@@ -33,6 +49,13 @@ export default function Home() {
     }
   }, [])
 
+  useEffect(() => {
+    setMemoSche((prev) => scheduler.map((i,index)=>i.map((j,ind)=>(j!=60*25 && j? j: prev[index][ind]))));
+    if (scheduler.find(i=>i.find(j=>(j===60*25)))) {
+      setScheduler((prev) => prev.map((i,index)=>i.map((j,ind)=>(j===60*25? memoSche[index][ind]||17*60: j))));
+    }
+  },[scheduler])
+
   const setalltime = (time: number) => {
     setScheduler(prev => {
       return prev.map((i) => (i.map((l) => (l ? time : false))))
@@ -40,10 +63,9 @@ export default function Home() {
   }
 
   const setblue = (index: number, numm?: number) => {
-    console.log(numm);
     setScheduler(prev => {
       const newScheduler = structuredClone(prev);
-      newScheduler[firstDay.getMonth()][index] = (newScheduler[firstDay.getMonth()][index] === false || numm ? numm || (17 * 60) : false);
+      newScheduler[firstDay.getMonth()][index] = (newScheduler[firstDay.getMonth()][index] === false || numm ? numm || (25 * 60) : false);
       return newScheduler;
     })
   }
@@ -70,7 +92,7 @@ export default function Home() {
           <div className="w-80 grid grid-cols-7 justify-around items-center text-sm">
             {["日", "月", "火", "水", "木", "金", "土"].map((i, index) => (<p className={`text-center aspect-square ${index === 0 ? 'text-ore' : ''}`} style={{ lineHeight: `${(75 / 7 / 4).toFixed(2)}rem` }} key={index}>{i}</p>))}
             {new Array(firstDay.getDay()).fill(0).map((_, index) => (<p className={`text-center aspect-square text-gray-400`} style={{ lineHeight: `${(80 / 7 / 4)}rem` }} key={index}>{index - firstDay.getDay() + 1 + scheduler[(firstDay.getMonth() + 11) % 12].length}</p>))}
-            {scheduler[firstDay.getMonth()].map((i, index) => (<p className={`${(nowmonth === firstDay.getMonth() && index + 1 < nowdate) ? "text-gray-400" : "cursor-pointer"} text-center aspect-square rounded-full ${(!i && (index + 1 >= nowdate || firstDay.getMonth() != nowmonth)) ? "hover:bg-gray-200" : ""} m-[0.12rem] ${(index + fday) % 7 === 0 ? ' text-ore' : ''} ${i ? "bg-sky-700 text-white hover:bg-[oklch(0.544_0.146_242.358)]" : ""} `} style={{ lineHeight: `${(80 / 7 / 4) - 0.24}rem` }} key={index} onClick={() => { if (index + 1 >= nowdate || firstDay.getMonth() != nowmonth) setblue(index) }}>{index + 1}</p>))}
+            {scheduler[firstDay.getMonth()].map((i, index) => (<p className={`${(nowmonth === firstDay.getMonth() && index + 1 < nowdate) ? "text-gray-400" : "cursor-pointer"} text-center aspect-square rounded-full ${((!i || oldSche[firstDay.getMonth()][index]) && (index + 1 >= nowdate || firstDay.getMonth() != nowmonth)) ? "hover:bg-gray-200" : ""} m-[0.12rem] ${(index + fday) % 7 === 0 ? ' text-ore' : ''} ${i ? (oldSche[firstDay.getMonth()][index] ? "border border-sky-700 text-sky-700":"bg-sky-700 text-white hover:bg-[oklch(0.544_0.146_242.358)]" ): ""}`} style={{ lineHeight: `${(80 / 7 / 4) - 0.24}rem` }} key={index} onClick={() => { if (index + 1 >= nowdate || firstDay.getMonth() != nowmonth) setblue(index)}}>{index + 1}</p>))}
           </div>
         </div>
         <p className="text-lg mb-2 mt-5">通常活動の終了時刻</p>
@@ -107,7 +129,7 @@ export default function Home() {
                 }
               }}><p className={`text-center aspect-square pt-2 rounded-full ${(index + fday) % 7 === 0 ? ' text-ore' : ''}`} key={index}>{index + 1}</p><p className="absolute top-6 text-white text-xs right-1/2 translate-x-1/2">{(typeof i == "number" && `${Math.floor(i / 60)}:${(i % 60).toString().padStart(2, "0")}`)}</p></div>))}
             </div>
-            <div hidden={!unseen} ref={popupref} className={`${iskobeopend ? "" : "opacity-0 scale-70 translate-y-[15%]"} border border-gray-300 absolute -translate-x-1/2 bg-neutral-100 pt-4 pl-6 pr-8 pb-6 w-fit shadow-lg`} style={{ left: `${(fday + kboetunum + 1) % 7 * (80 * 4 / 7) - 80 * 2 / 7}px`, bottom: `${(Math.ceil((fday + scheduler[firstDay.getMonth()].length) / 7) - Math.ceil((fday + kboetunum + 1) / 7) + 1) * (80 * 4 / 7) + 16}px` }}><TimeUI key={kboetunum} type="w" defo={scheduler[firstDay.getMonth()][kboetunum] as number} settime={(i) => { setblue(kboetunum, i) }} />
+            <div hidden={!unseen} ref={popupref} className={`${iskobeopend ? "" : "opacity-0 scale-70 translate-y-[15%]"} border border-gray-300 absolute -translate-x-1/2 bg-neutral-100 pt-4 pl-6 pr-8 pb-6 w-fit shadow-lg`} style={{ left: `${((fday + kboetunum ) % 7+1) * (80 * 4 / 7) - 80 * 2 / 7}px`, bottom: `${(Math.ceil((fday + scheduler[firstDay.getMonth()].length) / 7) - Math.ceil((fday + kboetunum + 1) / 7) + 1) * (80 * 4 / 7) + 16}px` }}><TimeUI key={kboetunum} type="w" defo={scheduler[firstDay.getMonth()][kboetunum] as number} settime={(i) => { setblue(kboetunum, i) }} />
               <svg viewBox="0 0 28 28" className="w-7 h-7 absolute -bottom-7 left-1/2 -translate-x-1/2">
                 <path d="M0 0L14 16 L28 0Z " className="fill-neutral-100 stroke-1 stroke-gray-300"></path>
                 <path d="M1 0L27 0" className="stroke-neutral-100"></path></svg>
@@ -123,3 +145,4 @@ export default function Home() {
     </div>
   )
 }
+//_?#2Cem9C.kQaAF
