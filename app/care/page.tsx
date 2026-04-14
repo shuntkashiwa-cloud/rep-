@@ -141,6 +141,7 @@ export default function Home() {
           </div>
         )}
         {shuryoType === 2 && <TimeUI settime={setalltime} />}
+        <button className="mt-4 relative bg-sky-700 text-white py-1.5 px-4 rounded after:absolute  after:left-0 after:top-0 after:content-[''] after:scale-x-0 hover:after:scale-x-100 after:bg-white after:w-full after:h-full">送信</button>
       </div>
     </div>
   )
