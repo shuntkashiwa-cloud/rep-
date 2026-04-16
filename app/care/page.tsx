@@ -82,6 +82,7 @@ export default function Home() {
     const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
     const mesage=await fetch("api/togas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(JSON.stringify(buf.map((i, index) => ({ id: index, time: i })).filter(i => i.time !== firstsche.current[i.id]))) });
     const a=await mesage.json();
+    console.log(a);
     setIsSubmitting(false);
   }
 
@@ -156,8 +157,8 @@ export default function Home() {
           </div>
         )}
         {shuryoType === 2 && <TimeUI settime={setalltime} />}
-        <button className={`mt-4 relative bg-sky-700 text-white  py-1.5 px-4 rounded
-        after:absolute after:rounded after:transition-all after:duration-300 after:left-0 after:top-0 after:content-[''] after:scale-x-0 after:origin-left hover:after:scale-x-100 after:bg-white after:w-full after:h-full
+        <button className={`mt-4 relative bg-sky-700 ${isSubmitting ? "text-sky-700" : "text-white"}  py-1.5 px-4 rounded
+        after:absolute after:rounded after:transition-all after:duration-300 after:left-0 after:top-0 after:content-[''] ${isSubmitting ? "":"after:scale-x-0"} after:origin-left hover:after:scale-x-100 after:bg-white after:w-full after:h-full
         before:absolute before:top-0 before:left-0 before:py-1.25 before:px-3.75 ${isSubmitting ? "before:content-['送信中']" : "before:content-['送信']"} before:z-10 before:border before:border-sky-700 before:rounded hover:before:text-sky-700 before:transition before:duration-300`}
         onClick={()=>submit()}>{isSubmitting ? "　　　" : "　　"}</button>
       </div>
