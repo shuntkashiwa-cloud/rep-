@@ -11,6 +11,7 @@ export default function Home() {
   const [scheduler, setScheduler] = useState<(boolean | number)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear() + (1 * Number(ind < nowmonth)), (ind + 1) % 12, 0).getDate()).fill(false)));
   const [oldSche, setOldSche] = useState<(boolean)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear() + (1 * Number(ind < nowmonth)), (ind + 1) % 12, 0).getDate()).fill(false)));
   const [memoSche, setMemoSche] = useState<(boolean | number)[][]>(structuredClone(scheduler));
+  const firstsche=useRef(new Array(366).fill(false));
   const [firstDay, setFirstDay] = useState(new Date(new Date().getFullYear(), nowmonth, 1));
   const [shuryoType, setShuryoType] = useState(0);
   const [shuryoopend, setShuryoopend] = useState(false);
@@ -29,8 +30,10 @@ export default function Home() {
     const fetchdata = async () => {
       const { data: iit, error } = await supabase.from("scheduler").select("time").order("id", { ascending: true });;
       if (iit) {
-        setScheduler(slicesum.slice(0, 12).map((i, index) => iit.slice(i, slicesum[index + 1]).map((j, _) => j.time || false)))
-        setOldSche(slicesum.slice(0, 12).map((i, index) => iit.slice(i, slicesum[index + 1]).map((j, _) => j.time ? true : false)))
+        const a=slicesum.slice(0, 12).map((i, index) => iit.slice(i, i+scheduler[index].length).map((j, _) => j.time || false))
+        setScheduler(a);
+        firstsche.current=(iit.map(i => i.time || false));
+        setOldSche(a.map(i => i.map(j => Boolean(j))));
       };
     }
     fetchdata();
@@ -73,7 +76,12 @@ export default function Home() {
 
   const submit = async () => {
     setIsSubmitting(true);
-    const { data, error } = await supabase.from("scheduler").upsert(scheduler.flat().map((i, index) => ({ id: index, time: (i === false ? null : i) })), { onConflict: "id" });
+
+    let buf=scheduler.flat();
+    if(buf.length==365) buf.splice(59, 0, firstsche.current[59]);
+    const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
+    const mesage=await fetch("api/togas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(JSON.stringify(buf.map((i, index) => ({ id: index, time: i })).filter(i => i.time !== firstsche.current[i.id]))) });
+    const a=await mesage.json();
     setIsSubmitting(false);
   }
 
