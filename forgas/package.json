@@ -4,7 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dep":"clasp deploy -i AKfycbzOLDmoh5FOl5P97eWC-RszU_0jIdvtpx6WKjUowGIgg9EAXc3O6MfiY3a4l8vouLYnoA"
   },
   "keywords": [],
   "author": "",
