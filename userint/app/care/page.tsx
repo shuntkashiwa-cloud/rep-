@@ -28,7 +28,7 @@ export default function Home() {
 
   useEffect(() => {
     const fetchdata = async () => {
-      const { data: iit, error } = await supabase.from("scheduler").select("time").order("id", { ascending: true });;
+      const { data: iit, error } = await supabase.from("scheduler").select("time").order("id", { ascending: true });
       if (iit) {
         const a=slicesum.slice(0, 12).map((i, index) => iit.slice(i, i+scheduler[index].length).map((j, _) => j.time || false))
         setScheduler(a);
