@@ -82,6 +82,8 @@ export default function Home() {
     const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
     const mesage=await fetch("api/togas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(JSON.stringify(buf.map((i, index) => ({ id: index, time: i })).filter(i => i.time !== firstsche.current[i.id]))) });
     const a=await mesage.json();
+    setOldSche(scheduler.map(i => i.map(j => Boolean(j))));
+    firstsche.current=buf;
     console.log(a);
     setIsSubmitting(false);
   }
