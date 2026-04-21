@@ -12,6 +12,8 @@ export default function Home() {
   const [oldSche, setOldSche] = useState<(boolean)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear() + (1 * Number(ind < nowmonth)), (ind + 1) % 12, 0).getDate()).fill(false)));
   const [memoSche, setMemoSche] = useState<(boolean | number)[][]>(structuredClone(scheduler));
   const firstsche=useRef(new Array(366).fill(false));
+//sche,oldsche,memoscheは355か366、firstscheは366で、閏年の2月29日がある場合は59番目、ない場合は60番目が3月1日
+
   const [firstDay, setFirstDay] = useState(new Date(new Date().getFullYear(), nowmonth, 1));
   const [shuryoType, setShuryoType] = useState(0);
   const [shuryoopend, setShuryoopend] = useState(false);
@@ -82,6 +84,15 @@ export default function Home() {
     const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
     const mesage=await fetch("api/togas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(JSON.stringify(buf.map((i, index) => ({ id: index, time: i })).filter(i => i.time !== firstsche.current[i.id]))) });
     const a=await mesage.json();
+
+    const nowd=slicesum[nowmonth]+nowdate-1;
+    let j=0;
+    let disbuf=new Array();
+    for(let i=0;i<8-new Date().getDay();i++){
+      if(nowd+i+j==59 && scheduler[1].length==28) j=1;
+      if(firstsche.current[(nowd+i+j)%366]!==buf[(nowd+i+j)%366]) disbuf.push(i+new Date().getDay());
+    }
+    await fetch("/api/updatedis", { method: "POST" ,headers: { "Content-Type": "application/json" }, body: JSON.stringify(disbuf) });
     setOldSche(scheduler.map(i => i.map(j => Boolean(j))));
     firstsche.current=buf;
     console.log(a);
@@ -109,8 +120,8 @@ export default function Home() {
           </div>
           <div className="w-80 grid grid-cols-7 justify-around items-center text-sm">
             {["日", "月", "火", "水", "木", "金", "土"].map((i, index) => (<p className={`text-center aspect-square ${index === 0 ? 'text-ore' : ''}`} style={{ lineHeight: `${(75 / 7 / 4).toFixed(2)}rem` }} key={index}>{i}</p>))}
-            {new Array(firstDay.getDay()).fill(0).map((_, index) => (<p className={`text-center aspect-square text-gray-400`} style={{ lineHeight: `${(80 / 7 / 4)}rem` }} key={index}>{index - firstDay.getDay() + 1 + scheduler[(firstDay.getMonth() + 11) % 12].length}</p>))}
-            {scheduler[firstDay.getMonth()].map((i, index) => (<p className={`${(nowmonth === firstDay.getMonth() && index + 1 < nowdate) ? "text-gray-400" : "cursor-pointer"} text-center aspect-square rounded-full ${((!i || oldSche[firstDay.getMonth()][index]) && (index + 1 >= nowdate || firstDay.getMonth() != nowmonth)) ? "hover:bg-gray-200" : ""} m-[0.12rem] ${(index + fday) % 7 === 0 ? ' text-ore' : ''} ${i ? (oldSche[firstDay.getMonth()][index] ? "border border-sky-700 text-sky-700" : "bg-sky-700 text-white hover:bg-[oklch(0.544_0.146_242.358)]") : ""}`} style={{ lineHeight: `${(80 / 7 / 4) - 0.24}rem` }} key={index} onClick={() => { if (index + 1 >= nowdate || firstDay.getMonth() != nowmonth) setblue(index) }}>{index + 1}</p>))}
+            {new Array(firstDay.getDay()).fill(0).map((_, index) => (<p className={`text-center aspect-square text-gray-400`} style={{ lineHeight: `${(80 / 7 / 4)}rem` }} key={index}>{index - firstDay.getDay() + 1 + new Date(firstDay.getFullYear(), firstDay.getMonth(), 0).getDate()}</p>))}
+            {scheduler[firstDay.getMonth()].map((i, index) => (<p className={`${(nowmonth === firstDay.getMonth() && index + 1 < nowdate) ? "text-gray-400" : "cursor-pointer"} text-center aspect-square rounded-full ${((!i || oldSche[firstDay.getMonth()][index]) && (index + 1 >= nowdate || firstDay.getMonth() != nowmonth)) ? "hover:bg-gray-200" : ""} m-[0.12rem] ${(index + firstDay.getDay()) % 7 === 0 ? ' text-ore' : ''} ${i ? (oldSche[firstDay.getMonth()][index] ? "border border-sky-700 text-sky-700" : "bg-sky-700 text-white hover:bg-[oklch(0.544_0.146_242.358)]") : ""}`} style={{ lineHeight: `${(80 / 7 / 4) - 0.24}rem` }} key={index} onClick={() => { if (index + 1 >= nowdate || firstDay.getMonth() != nowmonth) setblue(index) }}>{index + 1}</p>))}
           </div>
         </div>
         <p className="text-lg mb-2 mt-5">通常活動の終了時刻</p>
