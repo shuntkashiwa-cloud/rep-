@@ -81,21 +81,27 @@ export default function Home() {
 
     let buf=scheduler.flat();
     if(buf.length==365) buf.splice(59, 0, firstsche.current[59]);
-    const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
+    /*const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
     const mesage=await fetch("api/togas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(JSON.stringify(buf.map((i, index) => ({ id: index, time: i })).filter(i => i.time !== firstsche.current[i.id]))) });
     const a=await mesage.json();
-
+*/
     const nowd=slicesum[nowmonth]+nowdate-1;
     let j=0;
     let disbuf=new Array();
+    let hue=new Array();
+    let heri=new Array();
     for(let i=0;i<8-new Date().getDay();i++){
       if(nowd+i+j==59 && scheduler[1].length==28) j=1;
-      if(firstsche.current[(nowd+i+j)%366]!==buf[(nowd+i+j)%366]) disbuf.push(i+new Date().getDay());
+      const d=i+new Date().getDay();
+      if(buf[(nowd+i+j)%366]){
+        disbuf.push(d);
+        if(!firstsche.current[(nowd+i+j)%366]) hue.push(d);
+      }else if(firstsche.current[(nowd+i+j)%366]) heri.push(d);
     }
-    await fetch("/api/updatedis", { method: "POST" ,headers: { "Content-Type": "application/json" }, body: JSON.stringify(disbuf) });
+    const response = await fetch("/api/updatedis", { method: "POST" ,headers: { "Content-Type": "application/json" }, body: JSON.stringify({ disbuf: disbuf, hue: hue, heri: heri })});
     setOldSche(scheduler.map(i => i.map(j => Boolean(j))));
     firstsche.current=buf;
-    console.log(a);
+    console.log(await response.json());
     setIsSubmitting(false);
   }
 
