@@ -7,6 +7,8 @@ export default function Home() {
   const shuryo = ["すべて17時", "すべて14時", "すべて一括で指定", "個別で指定"]
   const nowmonth = new Date().getMonth()
   const nowdate = new Date().getDate()
+  let nichi=new Date();
+  nichi.setDate(nichi.getDate() - nichi.getDay());
 
   const [scheduler, setScheduler] = useState<(boolean | number)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear() + (1 * Number(ind < nowmonth)), (ind + 1) % 12, 0).getDate()).fill(false)));
   const [oldSche, setOldSche] = useState<(boolean)[][]>(new Array(12).fill(0).map((_, ind) => new Array(new Date(new Date().getFullYear() + (1 * Number(ind < nowmonth)), (ind + 1) % 12, 0).getDate()).fill(false)));
@@ -85,14 +87,14 @@ export default function Home() {
     const mesage=await fetch("api/togas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(JSON.stringify(buf.map((i, index) => ({ id: index, time: i })).filter(i => i.time !== firstsche.current[i.id]))) });
     const a=await mesage.json();
 */
-    const nowd=slicesum[nowmonth]+nowdate-1;
+    const nowd=slicesum[nichi.getMonth()]+nichi.getDate()-1;
     let j=0;
     let disbuf=new Array();
     let hue=new Array();
     let heri=new Array();
-    for(let i=0;i<8-new Date().getDay();i++){
+    for(let i=0;i<8;i++){
       if(nowd+i+j==59 && scheduler[1].length==28) j=1;
-      const d=i+new Date().getDay();
+      const d=i
       if(buf[(nowd+i+j)%366]){
         disbuf.push(d);
         if(!firstsche.current[(nowd+i+j)%366]) hue.push(d);

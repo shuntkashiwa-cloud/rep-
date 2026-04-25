@@ -20,6 +20,7 @@ export async function POST(req: Request) {
 
   if (!data) return NextResponse.json({ message: "No data found" }, { status: 404 });
   const ind = data.findIndex((item) => item.date == now);
+  console.log(data, ind, now);
   if (ind !== -1) {
     const res = await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages${data[ind].messageid ? `/${data[ind].messageid}` : ''}`, {
       method: `${data[ind].messageid ? "PATCH" : "POST"}`,
@@ -29,15 +30,16 @@ export async function POST(req: Request) {
       })
     });
     const resres = await res.json();
+    console.log(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages${data[ind].messageid ? `/${data[ind].messageid}` : ''}`);
     for (const day of hue) {
-      if (day !== 0) await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${encodeURIComponent(emos[day - 1])}/@me`, { method: "PUT", headers: header });
+      if (day !== 0) await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}/@me`, { method: "PUT", headers: header });
     }
     for (const day of heri) {
-      if (day !== 0) await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${encodeURIComponent(emos[day - 1])}`, { method: "DELETE", headers: header });
+      if (day !== 0) await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}`, { method: "DELETE", headers: header });
     }
   }
   const ind2 = data.findIndex((item) => item.date == last);
-  if(ind2!==-1 && all[0]==0){
+  if(ind2!==-1 && (all[0]==0 || heri[0]==0)){
     const mescont = await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${data[ind2].messageid}`, {
       method: "GET",
       headers: header

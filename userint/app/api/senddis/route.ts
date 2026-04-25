@@ -4,7 +4,9 @@ export async function POST(req: Request) {
   const { data: iit, error } = await supabase.from("scheduler").select("time").order("id", { ascending: true });
   if (!iit) return NextResponse.json({ message: "No data found" }, { status: 404 });
   const now = new Date();
-  const current = Math.floor((now.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 1000 / 60 / 60 / 24) + Number(new Date(now.getFullYear(), 2, 0).getDate() == 28 && now.getMonth() >= 2);
+  let nichi=new Date()
+  nichi.setDate(nichi.getDate() - nichi.getDay());
+  const current = Math.floor((nichi.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 1000 / 60 / 60 / 24) + Number(new Date(now.getFullYear(), 2, 0).getDate() == 28 && now.getMonth() >= 2);
   let buf = new Array();
   let bufsupa = new Array();
   let j = 0;
@@ -50,10 +52,10 @@ export async function POST(req: Request) {
   }
 
   const oldid = await supabase.from("messageid").select().eq("id", 1).single()
-  if (oldid.data) {
+  if (oldid.data && oldid.data.date!== 31 * nichi.getMonth() + nichi.getDate()) {
     await supabase.from("messageid").update({ id: 0, messageid: oldid.data.messageid, date: oldid.data.date }).eq("id", 0);
   }
-  await supabase.from("messageid").update({ id: 1, messageid: (buf.length == 0 ? null : resres.id), date: 31 * now.getMonth() + now.getDate() }).eq("id", 1);
+  await supabase.from("messageid").update({ id: 1, messageid: (buf.length == 0 ? null : resres.id), date: 31 * nichi.getMonth() + nichi.getDate() }).eq("id", 1);
 
 
   return NextResponse.json({ message: d });
