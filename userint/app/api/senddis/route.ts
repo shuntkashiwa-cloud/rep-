@@ -1,12 +1,18 @@
 import { NextResponse } from 'next/server';
 import { supabase } from "../../../lib/supabaseClient";
 export async function POST(req: Request) {
-  const { data: iit, error } = await supabase.from("scheduler").select("time").order("id", { ascending: true });
+  const { data: iit, error } = await supabase.from("scheduler").select().order("id", { ascending: true });
   if (!iit) return NextResponse.json({ message: "No data found" }, { status: 404 });
+
   const now = new Date();
   let nichi=new Date()
   nichi.setDate(nichi.getDate() - nichi.getDay());
   const current = Math.floor((nichi.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 1000 / 60 / 60 / 24) + Number(new Date(now.getFullYear(), 2, 0).getDate() == 28 && now.getMonth() >= 2);
+  
+  const o = await supabase.from("messageid").select("messageid").eq("date", 31 * nichi.getMonth() + nichi.getDate()).single();
+  console.log(o);
+  if(o.data && o.data.messageid) return NextResponse.json({ message: "Already sent" }, { status: 400 });
+  
   let buf = new Array();
   let bufsupa = new Array();
   let j = 0;
@@ -57,6 +63,14 @@ export async function POST(req: Request) {
   }
   await supabase.from("messageid").update({ id: 1, messageid: (buf.length == 0 ? null : resres.id), date: 31 * nichi.getMonth() + nichi.getDate() }).eq("id", 1);
 
-
+  //一週間前を消す
+  nichi.setDate(nichi.getDate() - 7);
+  const kesu = Math.floor((nichi.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 1000 / 60 / 60 / 24) + Number(new Date(now.getFullYear(), 2, 0).getDate() == 28 && now.getMonth() >= 2);
+  let old=structuredClone(iit);
+  for (let i=kesu;i<current;i++){
+    old[i%366].time=null;
+  }
+  console.log(old);
+  await supabase.from("scheduler").upsert(old, { onConflict: "id" }); 
   return NextResponse.json({ message: d });
 }

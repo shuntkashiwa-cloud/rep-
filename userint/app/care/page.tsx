@@ -83,10 +83,10 @@ export default function Home() {
 
     let buf=scheduler.flat();
     if(buf.length==365) buf.splice(59, 0, firstsche.current[59]);
-    /*const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
+    const { data, error } = await supabase.from("scheduler").upsert((buf.map((i, index) => ({ id: index, time: (i === false ? null : i) }))), { onConflict: "id" });
     const mesage=await fetch("api/togas", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(JSON.stringify(buf.map((i, index) => ({ id: index, time: i })).filter(i => i.time !== firstsche.current[i.id]))) });
     const a=await mesage.json();
-*/
+
     const nowd=slicesum[nichi.getMonth()]+nichi.getDate()-1;
     let j=0;
     let disbuf=new Array();
