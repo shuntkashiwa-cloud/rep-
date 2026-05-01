@@ -19,6 +19,7 @@ export async function POST(req: Request) {
     "Authorization": `Bot ${process.env.DISCORD_BOT_TOKEN}`,
     "User-Agent": "OngakubuBot (https://github.com/yourname/repo, 1.0)"
   }
+  const sleep = (value: number) => { return new Promise((resolve) => setTimeout(resolve, value)) };
 
   if (!data) return NextResponse.json({ message: "No data found" }, { status: 404 });
   const ind = data.findIndex((item) => item.date == now);
@@ -34,9 +35,11 @@ export async function POST(req: Request) {
     const resres = await res.json();
     console.log(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages${data[ind].messageid ? `/${data[ind].messageid}` : ''}`);
     for (const day of all) {
+      sleep(75);
       if (day !== 0) await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}/@me`, { method: "PUT", headers: header });
     }
     for (const day of heri) {
+      sleep(75);
       if (day !== 0) console.log(await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}`, { method: "DELETE", headers: header }));
     }
     await supabase.from("messageid").update({ messageid: resres.id }).eq("id", data[ind].id);
