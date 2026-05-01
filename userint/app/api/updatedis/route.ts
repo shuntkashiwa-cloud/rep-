@@ -80,8 +80,17 @@ export async function POST(req: Request) {
     }).then((res) => res.json()).then((res) => res.id);
 
     await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${res}/reactions/${encodeURIComponent(emos[6])}${type === "PUT" ? "/@me" : ""}`, { method: type, headers: header });
-    await supabase.from("messageid").update({ messageid: res }).eq("id", data[ind2].id);
-
+    if(ind2!==-1) {
+      await supabase.from("messageid").update({ messageid: res }).eq("id", data[ind2].id);
+    } else {
+      const buf=structuredClone(data);
+      if(data[1].data>last) buf[0]={ id: 0, messageid: res, date: last };
+      else{
+        buf[0]=buf[1];
+        buf[1]={ id: 1, messageid: res, date: last };
+      }
+      await supabase.from("messageid").upsert(buf, { onConflict: "id" });
+    }
   }
 
   return NextResponse.json({ message: subday });

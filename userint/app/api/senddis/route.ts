@@ -1,6 +1,9 @@
 import { NextResponse } from 'next/server';
 import { supabase } from "../../../lib/supabaseClient";
 export async function POST(req: Request) {
+  //トリガー削除
+  await fetch(process.env.GAS_URL!, { method: "POST", headers: {"Content-Type": "application/json"}, body: "{}" });
+
   const { data: iit, error } = await supabase.from("scheduler").select().order("id", { ascending: true });
   if (!iit) return NextResponse.json({ message: "No data found" }, { status: 404 });
 
