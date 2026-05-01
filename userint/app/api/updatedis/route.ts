@@ -16,7 +16,8 @@ export async function POST(req: Request) {
   const { data, error } = await supabase.from("messageid").select().order("id", { ascending: true });
   const header = {
     "Content-Type": "application/json",
-    "Authorization": `Bot ${process.env.DISCORD_BOT_TOKEN}`
+    "Authorization": `Bot ${process.env.DISCORD_BOT_TOKEN}`,
+    "User-Agent": "OngakubuBot (https://github.com/yourname/repo, 1.0)"
   }
 
   if (!data) return NextResponse.json({ message: "No data found" }, { status: 404 });
@@ -48,7 +49,7 @@ export async function POST(req: Request) {
   if (all[0] == 0 || heri[0] == 0) {
     let bun, type;
     let mescont = null;
-    if (ind2 === -1) {
+    if (ind2 !== -1) {
       mescont = await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${data[ind2].messageid}`, {
         method: "GET",
         headers: header
@@ -79,7 +80,7 @@ export async function POST(req: Request) {
       body: JSON.stringify({ content: bun })
     }).then((res) => res.json()).then((res) => res.id);
 
-    await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${res}/reactions/${encodeURIComponent(emos[6])}${type === "PUT" ? "/@me" : ""}`, { method: type, headers: header });
+    await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${res}/reactions/${emos[6]}${type === "PUT" ? "/@me" : ""}`, { method: type, headers: header });
     if(ind2!==-1) {
       await supabase.from("messageid").update({ messageid: res }).eq("id", data[ind2].id);
     } else {
