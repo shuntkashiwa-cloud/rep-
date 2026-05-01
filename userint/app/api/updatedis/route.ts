@@ -37,7 +37,7 @@ export async function POST(req: Request) {
       if (day !== 0) await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}/@me`, { method: "PUT", headers: header });
     }
     for (const day of heri) {
-      if (day !== 0) await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}`, { method: "DELETE", headers: header });
+      if (day !== 0) console.log(await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}`, { method: "DELETE", headers: header }));
     }
     await supabase.from("messageid").update({ messageid: resres.id }).eq("id", data[ind].id);
   } else {
