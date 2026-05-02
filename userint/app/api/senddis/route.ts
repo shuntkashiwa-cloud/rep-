@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabase } from "../../../lib/supabaseClient";
-export async function POST(req: Request) {
+export async function GET() {
   //トリガー削除
   await fetch(process.env.GAS_URL!, { method: "POST", headers: {"Content-Type": "application/json"}, body: "{}" });
 
