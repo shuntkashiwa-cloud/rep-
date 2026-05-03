@@ -91,12 +91,15 @@ export async function POST(req: Request) {
       await supabase.from("messageid").update({ messageid: res }).eq("id", data[ind2].id);
     } else {
       let buf=structuredClone(data);
-      if(data[1].data>last) buf[0]={ id: 0, messageid: res, date: last };
+      if(data[1].date>last) buf[0]={ id: 0, created_at:"2026-04-20T12:44:35.952741+00:00", messageid: res, date: last };
       else{
+        buf[1].id=0;
         buf[0]=buf[1];
-        buf[1]={ id: 1, messageid: res, date: last };
+        buf[1]={ id: 1, created_at:"2026-04-20T12:44:35.952741+00:00",messageid: res, date: last };
       }
-      await supabase.from("messageid").upsert(buf, { onConflict: "id" });
+      console.log(buf);
+      const a =await supabase.from("messageid").upsert(buf, { onConflict: "id" });
+      console.log(a)
     }
   }
 
