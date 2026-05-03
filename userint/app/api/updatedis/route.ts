@@ -43,10 +43,11 @@ export async function POST(req: Request) {
     }
     await supabase.from("messageid").update({ messageid: resres.id }).eq("id", data[ind].id);
   } else {
-    await fetch("/api/senddis", { method: "POST", headers: { "Content-Type": "application/json" } });
+    //await fetch("api/senddis", { method: "GET"});
   }
 
   //先週の日曜
+  console.log(last);
   const ind2 = data.findIndex((item) => item.date == last);
   if (all[0] == 0 || heri[0] == 0) {
     let bun, type;
@@ -56,8 +57,6 @@ export async function POST(req: Request) {
         method: "GET",
         headers: header
       }).then((res) => res.json()).then((res) => res.content);
-
-      console.log(mescont);
       
       if (mescont) {
         if (mescont.slice(-3) === "7:日" && heri[0] == 0) {
@@ -75,12 +74,17 @@ export async function POST(req: Request) {
       bun = `今日の出欠です。番号でリアクションしてください。\n7:日`;
       type = "PUT";
     }
+    console.log(mescont);
+    console.log(bun)
 
-    const res = await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages${mescont ? "/" + data[ind2].messageid : ''}`, {
+    const r = await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages${mescont ? "/" + data[ind2].messageid : ''}`, {
       method: (mescont ? "PATCH" : "POST"),
       headers: header,
       body: JSON.stringify({ content: bun })
-    }).then((res) => res.json()).then((res) => res.id);
+    })
+    const re=await r.json();
+    console.log(re);
+    const res=re.id;
 
     await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${res}/reactions/${emos[6]}${type === "PUT" ? "/@me" : ""}`, { method: type, headers: header });
     if(ind2!==-1) {
@@ -96,5 +100,5 @@ export async function POST(req: Request) {
     }
   }
 
-  return NextResponse.json({ message: subday });
+  return NextResponse.json({ message: last });
 }

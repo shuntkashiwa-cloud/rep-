@@ -2,20 +2,20 @@ import { NextResponse } from 'next/server';
 import { supabase } from "../../../lib/supabaseClient";
 export async function GET() {
   //トリガー削除
-  await fetch(process.env.GAS_URL!, { method: "POST", headers: {"Content-Type": "application/json"}, body: "{}" });
+  await fetch(process.env.GAS_URL!, { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
 
   const { data: iit, error } = await supabase.from("scheduler").select().order("id", { ascending: true });
   if (!iit) return NextResponse.json({ message: "No data found" }, { status: 404 });
 
   const now = new Date();
-  let nichi=new Date()
+  let nichi = new Date()
   nichi.setDate(nichi.getDate() - nichi.getDay());
-  const current = Math.floor((nichi.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 1000 / 60 / 60 / 24) + Number(new Date(now.getFullYear(), 2, 0).getDate() == 28 && now.getMonth() >= 2);
-  
+  const current = Math.floor((nichi.getTime() - new Date(now.getFullYear(), 0, 1, 0, 0).getTime()) / 1000 / 60 / 60 / 24) + Number(new Date(now.getFullYear(), 2, 0).getDate() == 28 && now.getMonth() >= 2);
+
   const o = await supabase.from("messageid").select("messageid").eq("date", 31 * nichi.getMonth() + nichi.getDate()).single();
   console.log(o);
-  if(o.data && o.data.messageid) return NextResponse.json({ message: "Already sent" }, { status: 400 });
-  
+  if (o.data && o.data.messageid) return NextResponse.json({ message: "Already sent" }, { status: 400 });
+
   let buf = new Array();
   let bufsupa = new Array();
   let j = 0;
@@ -34,7 +34,7 @@ export async function GET() {
   }
 
   let resres;
-  let d={"result": "nonedata"};
+  let d = { "result": "nonedata" };
 
   if (buf.length !== 0) {
 
@@ -46,14 +46,19 @@ export async function GET() {
       })
     });
     const sleep = (value: number) => { return new Promise((resolve) => setTimeout(resolve, value)) };
-
     resres = await res.json();
-    for (const day of buf) {
-      await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}/@me`, {
-        method: "PUT",
-        headers: header
-      });
-      await sleep(100);
+
+    for (const day of buf) {  
+      for (let i=0;i < 3;i++) {
+        let slen=300;
+        await sleep(slen);
+        const reacres = await fetch(`https://discord.com/api/v10/channels/${process.env.DISCORD_CHANNEL_ID}/messages/${resres.id}/reactions/${emos[day - 1]}/@me`, {
+          method: "PUT",
+          headers: header
+        });
+        if(reacres.status!==429) break;
+        slen=await reacres.json().then(r=>(r.retry_after+0.1)*1000)
+      }
     }
 
     const mesage = await fetch(process.env.GAS_URL!, { method: "POST", headers: header, body: JSON.stringify(bufsupa) });
@@ -61,7 +66,7 @@ export async function GET() {
   }
 
   const oldid = await supabase.from("messageid").select().eq("id", 1).single()
-  if (oldid.data && oldid.data.date!== 31 * nichi.getMonth() + nichi.getDate()) {
+  if (oldid.data && oldid.data.date !== 31 * nichi.getMonth() + nichi.getDate()) {
     await supabase.from("messageid").update({ id: 0, messageid: oldid.data.messageid, date: oldid.data.date }).eq("id", 0);
   }
   await supabase.from("messageid").update({ id: 1, messageid: (buf.length == 0 ? null : resres.id), date: 31 * nichi.getMonth() + nichi.getDate() }).eq("id", 1);
@@ -69,11 +74,11 @@ export async function GET() {
   //一週間前を消す
   nichi.setDate(nichi.getDate() - 7);
   const kesu = Math.floor((nichi.getTime() - new Date(now.getFullYear(), 0, 1).getTime()) / 1000 / 60 / 60 / 24) + Number(new Date(now.getFullYear(), 2, 0).getDate() == 28 && now.getMonth() >= 2);
-  let old=structuredClone(iit);
-  for (let i=kesu;i<current;i++){
-    old[i%366].time=null;
+  let old = structuredClone(iit);
+  for (let i = kesu; i < current; i++) {
+    old[i % 366].time = null;
   }
   console.log(old);
-  await supabase.from("scheduler").upsert(old, { onConflict: "id" }); 
+  await supabase.from("scheduler").upsert(old, { onConflict: "id" });
   return NextResponse.json({ message: d });
 }
