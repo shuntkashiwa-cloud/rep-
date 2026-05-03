@@ -90,7 +90,7 @@ export async function POST(req: Request) {
     if(ind2!==-1) {
       await supabase.from("messageid").update({ messageid: res }).eq("id", data[ind2].id);
     } else {
-      const buf=structuredClone(data);
+      let buf=structuredClone(data);
       if(data[1].data>last) buf[0]={ id: 0, messageid: res, date: last };
       else{
         buf[0]=buf[1];
